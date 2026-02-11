@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.role import Role
 from app.core.security import hash_password
+from app.core.security import verify_password
 
 def get_role_by_name(db: Session, role_name: str):
     return db.query(Role).filter(Role.name == role_name).first()
@@ -36,3 +37,14 @@ def create_user(db: Session, full_name: str, email: str, password: str):
     db.refresh(new_user)
 
     return new_user
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return None
+    
+    if not verify_password(password, user.password):
+        return None
+    
+    return user
+
