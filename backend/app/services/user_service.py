@@ -1,11 +1,12 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.role import Role
-from app.core.security import hash_password
-from app.core.security import verify_password
+from app.core.security import hash_password, verify_password
+
 
 def get_role_by_name(db: Session, role_name: str):
     return db.query(Role).filter(Role.name == role_name).first()
+
 
 def create_default_roles(db: Session):
     roles = ["Admin", "Manager", "Employee", "User"]
@@ -17,6 +18,26 @@ def create_default_roles(db: Session):
             db.add(new_role)
 
     db.commit()
+
+    # Create default Admin user
+    admin_email = "admin@gmail.com"
+
+    admin_user = db.query(User).filter(User.email == admin_email).first()
+
+    if not admin_user:
+        admin_role = get_role_by_name(db, "Admin")
+
+        new_admin = User(
+            full_name="Super Admin",
+            email=admin_email,
+            password=hash_password("admin123"),
+            role_id=admin_role.id
+        )
+
+        db.add(new_admin)
+        db.commit()
+
+
 
 def create_user(db: Session, full_name: str, email: str, password: str):
     existing_user = db.query(User).filter(User.email == email).first()
@@ -38,6 +59,7 @@ def create_user(db: Session, full_name: str, email: str, password: str):
 
     return new_user
 
+
 def authenticate_user(db: Session, email: str, password: str):
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -47,4 +69,5 @@ def authenticate_user(db: Session, email: str, password: str):
         return None
     
     return user
+
 

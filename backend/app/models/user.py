@@ -10,5 +10,6 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
 
-    role_id = Column(Integer, ForeignKey("roles.id"), default=4)
+    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, default=4)
+
     role = relationship("Role")

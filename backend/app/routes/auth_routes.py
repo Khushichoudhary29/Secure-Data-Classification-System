@@ -8,6 +8,8 @@ from app.schemas.user_schema import UserLogin
 from app.services.user_service import authenticate_user
 from app.core.security import create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
+from app.core.rbac import role_required
+
 
 
 
@@ -40,5 +42,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "access_token": token,
         "token_type": "bearer"
     }
+    
 
 
