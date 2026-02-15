@@ -1,3 +1,8 @@
+from sqlalchemy.orm import joinedload
+from app.schemas.admin_schema import UserWithRoleResponse, RoleResponse
+
+
+from sqlalchemy.orm import Session, joinedload
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -6,6 +11,12 @@ from app.models.user import User
 from app.models.role import Role
 from app.core.rbac import role_required
 from app.services.user_service import create_default_roles, create_user
+from app.schemas.admin_schema import UserWithRoleResponse, RoleResponse
+
+from app.schemas.user_update_schema import UserUpdate
+from sqlalchemy.orm import joinedload
+
+
 
 
 router = APIRouter(prefix="/admin", tags=["Admin Panel"])
@@ -76,4 +87,131 @@ def create_admin(db: Session = Depends(get_db)):
     db.commit()
     db.refresh(admin)
 
-    return {"message": "Admin created successfully", "email": admin.email}
+    return {"message": "Admin created successfully", "email": admin.email}@router.get("/users", response_model=list[UserWithRoleResponse])
+def get_all_users(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    users = db.query(User).all()
+
+    result = []
+    for u in users:
+        result.append({
+            "id": u.id,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role_id": u.role_id,
+            "role_name": u.role.name if u.role else "No Role"
+        })
+
+    return result
+
+
+@router.get("/roles", response_model=list[RoleResponse])
+def get_all_roles(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    roles = db.query(Role).all()
+    return roles
+
+
+@router.get("/users")
+def get_all_users(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    users = db.query(User).options(joinedload(User.role)).all()
+
+    return [
+        {
+            "id": u.id,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role_id": u.role_id,
+            "role_name": u.role.name if u.role else "No Role"
+        }
+        for u in users
+    ]
+    
+    
+@router.get("/users", response_model=list[UserWithRoleResponse])
+def get_all_users(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    users = db.query(User).options(joinedload(User.role)).all()
+    return users
+
+
+@router.get("/user/{user_id}", response_model=UserWithRoleResponse)
+def get_user_by_id(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    user = db.query(User).options(joinedload(User.role)).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+
+@router.delete("/delete-user/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+
+    return {"message": f"User {user.full_name} deleted successfully"}
+
+
+
+
+@router.put("/update-user/{user_id}")
+def update_user(
+    user_id: int,
+    update_data: UserUpdate,
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if update_data.full_name is not None:
+        user.full_name = update_data.full_name
+
+    if update_data.email is not None:
+        user.email = update_data.email
+
+    if update_data.role_id is not None:
+        role = db.query(Role).filter(Role.id == update_data.role_id).first()
+        if not role:
+            raise HTTPException(status_code=404, detail="Role not found")
+
+        user.role_id = update_data.role_id
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "User updated successfully",
+        "user_id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "role_id": user.role_id
+    }
+
+
+
