@@ -61,7 +61,8 @@ def create_user(db: Session, full_name: str, email: str, password: str):
 
 
 def authenticate_user(db: Session, email: str, password: str):
-    user = db.query(User).filter(User.email == email).first()
+    from sqlalchemy.orm import joinedload
+    user = db.query(User).options(joinedload(User.role)).filter(User.email == email).first()
     if not user:
         return None
     
