@@ -10,10 +10,7 @@ from app.core.security import create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.rbac import role_required
 
-
-
-
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
