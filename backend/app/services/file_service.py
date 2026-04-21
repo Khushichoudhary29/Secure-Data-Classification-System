@@ -94,7 +94,7 @@ def get_file_by_id(file_id: int):
 
     db = SessionLocal()
 
-    file = db.query(File).filter(File.id == file_id).first()
+    files = db.query(File).all()
 
     db.close()
 

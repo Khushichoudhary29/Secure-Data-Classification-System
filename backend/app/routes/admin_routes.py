@@ -19,7 +19,7 @@ from sqlalchemy.orm import joinedload
 
 
 
-router = APIRouter(prefix="/admin", tags=["Admin Panel"])
+router = APIRouter(tags=["Admin"])
 
 
 
@@ -87,24 +87,7 @@ def create_admin(db: Session = Depends(get_db)):
     db.commit()
     db.refresh(admin)
 
-    return {"message": "Admin created successfully", "email": admin.email}@router.get("/users", response_model=list[UserWithRoleResponse])
-def get_all_users(
-    db: Session = Depends(get_db),
-    admin_user=Depends(role_required(["Admin"]))
-):
-    users = db.query(User).all()
 
-    result = []
-    for u in users:
-        result.append({
-            "id": u.id,
-            "full_name": u.full_name,
-            "email": u.email,
-            "role_id": u.role_id,
-            "role_name": u.role.name if u.role else "No Role"
-        })
-
-    return result
 
 
 @router.get("/roles", response_model=list[RoleResponse])
@@ -116,23 +99,7 @@ def get_all_roles(
     return roles
 
 
-@router.get("/users")
-def get_all_users(
-    db: Session = Depends(get_db),
-    admin_user=Depends(role_required(["Admin"]))
-):
-    users = db.query(User).options(joinedload(User.role)).all()
 
-    return [
-        {
-            "id": u.id,
-            "full_name": u.full_name,
-            "email": u.email,
-            "role_id": u.role_id,
-            "role_name": u.role.name if u.role else "No Role"
-        }
-        for u in users
-    ]
     
     
 @router.get("/users", response_model=list[UserWithRoleResponse])

@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.core.rbac import role_required
 from app.models.user import User
 
-router = APIRouter(prefix="/employee", tags=["Employee Panel"])
+router = APIRouter(tags=["Employee"])
 
 
 @router.get("/dashboard")

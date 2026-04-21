@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-router = APIRouter(prefix="/manager", tags=["Manager Panel"])
+router = APIRouter(tags=["Manager"])
 
 
 @router.get("/dashboard")
