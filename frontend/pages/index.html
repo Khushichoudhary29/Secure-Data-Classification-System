@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Data Classification System</title>
+
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card" style="text-align: center; max-width: 600px; margin: auto;">
+            <h1 style="font-size: 3rem; margin-bottom: 20px; background: linear-gradient(45deg, #38bdf8, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                🔐 Secure Data Classification
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 40px;">
+                Enterprise-grade file classification and role-based access control.
+            </p>
+            <a href="login.html" class="btn" style="font-size: 1.2rem; padding: 20px 50px;">
+                Get Started → Login
+            </a>
+        </div>
+    </div>
+    <script>
+        // Auto-redirect if logged in
+        setTimeout(() => {
+            if (localStorage.getItem('token')) {
+                const token = localStorage.getItem('token');
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const role = payload.role || 'User';
+                const routes = {
+                    'Admin': 'admin_dashboard.html',
+                    'Manager': 'manager_dashboard.html',
+                    'Employee': 'employee_dashboard.html',
+                    'User': 'user_dashboard.html'
+                };
+                window.location.href = routes[role];
+            }
+        }, 1500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Secure Data Classification</title>
+<link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+
+</head>
+<body>
+    <nav class="sidebar hidden">
+        <h2>📋 User Menu</h2>
+        <ul class="sidebar-nav">
+            <li><button onclick="loadProfile()">👤 Profile</button></li>
+            <li><button onclick="uploadFile()">⬆️ Upload</button></li>
+            <li><button onclick="logout()">🚪 Logout</button></li>
+        </ul>
+    </nav>
+    
+    <button class="hamburger" onclick="toggleSidebar()" style="position: fixed; top: 20px; left: 20px; z-index: 1001;">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <main class="main">
+        <div class="container">
+            <header class="role-header">
+                <h1>User Dashboard <span id="roleDisplay" class="role-badge role-user"></span></h1>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </header>
+            
+            <!-- Profile -->
+            <div class="glass-card">
+                <h2>👤 My Profile</h2>
+                <div id="profileInfo"></div>
+                <button onclick="openProfileModal()" class="btn">Edit</button>
+            </div>
+            
+            <!-- Upload -->
+            <div class="glass-card">
+                <h2>⬆️ File Upload</h2>
+                <input type="file" id="fileInput" accept="*/*">
+                <button onclick="uploadFileHelper()" class="btn">Upload Securely</button>
+            </div>
+            
+            <!-- Files Section (placeholder) -->
+            <div class="glass-card">
+                <h2>📁 My Files</h2>
+                <div id="fileList">
+                    <p style="opacity: 0.7;">No files list API. Upload to see classifications.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/user.js"></script>
+</body>
+</html>

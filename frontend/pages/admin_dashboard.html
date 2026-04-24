@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Secure Data Classification</title>
+<link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/components.css">
+
+</head>
+<body>
+    <nav class="sidebar hidden">
+        <h2>🔧 Admin Panel</h2>
+        <ul class="sidebar-nav">
+            <li><button onclick="loadDashboard()">📊 Dashboard</button></li>
+            <li><button onclick="loadUsers()">👥 Users</button></li>
+            <li><button onclick="loadUsers()">👥 Users</button></li>
+            <li><button onclick="uploadFileHelper('fileInput')">⬆️ Upload</button></li>
+            <li><button onclick="logout()">🚪 Logout</button></li>
+        </ul>
+    </nav>
+    
+    <button class="hamburger" onclick="toggleSidebar()" style="position: fixed; top: 20px; left: 20px; z-index: 1001;">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <main class="main">
+        <div class="container">
+            <header class="role-header">
+                <h1>Admin Dashboard <span id="roleDisplay" class="role-badge role-admin"></span></h1>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </header>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card glass-card">
+                    <h3>Total Users</h3>
+                    <div id="totalUsers" class="stat-number">0</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <h3>Uploads Today</h3>
+                    <div id="uploadsToday" class="stat-number">0</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <h3>Active Admins</h3>
+                    <div id="activeAdmins" class="stat-number">0</div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-card glass-card">
+                    <h3>Role Distribution</h3>
+                    <canvas id="roleChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h3>Upload Activity</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <h3>User Growth</h3>
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Users Table -->
+            <div class="glass-card">
+                <h2>👥 User Management</h2>
+                <button onclick="openCreateAdminModal()" class="btn">+ Create Admin</button>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Activity Logs -->
+            <div class="glass-card">
+                <h2>📋 Activity Logs</h2>
+                <div id="activityLogs"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content glass-card">
+            <h2>Update Role</h2>
+            <select id="roleSelect"></select>
+            <div class="modal-actions">
+                <button onclick="updateRoleConfirm()" class="btn">Update</button>
+                <button onclick="closeModal()" class="btn btn-danger">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/charts.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>
