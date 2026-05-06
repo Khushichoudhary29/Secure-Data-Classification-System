@@ -14,7 +14,7 @@
         <h2>📋 User Menu</h2>
         <ul class="sidebar-nav">
             <li><button onclick="loadProfile()">👤 Profile</button></li>
-            <li><button onclick="uploadFile()">⬆️ Upload</button></li>
+<li><button onclick="uploadFileHelper()">⬆️ Upload</button></li>
             <li><button onclick="logout()">🚪 Logout</button></li>
         </ul>
     </nav>
@@ -46,7 +46,7 @@
                 <button onclick="uploadFileHelper()" class="btn">Upload Securely</button>
             </div>
             
-            <!-- Files Section (placeholder) -->
+<!-- Files Section (placeholder) -->
             <div class="glass-card">
                 <h2>📁 My Files</h2>
                 <div id="fileList">
@@ -56,9 +56,25 @@
         </div>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content glass-card">
+            <h2>Edit Profile</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="profileName">Full Name</label>
+                    <input type="text" id="profileName">
+                </div>
+                <button type="submit" class="btn">Save Changes</button>
+                <button onclick="closeModal()" class="btn btn-danger">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/charts.js"></script>
     <script src="../js/user.js"></script>
 </body>
 </html>
