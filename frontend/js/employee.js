@@ -1,15 +1,20 @@
-// employee.js - Employee dashboard
-const { getEmployeeDashboard, uploadFile } = window.api;
-const { uploadFileHelper, showLoading } = window.common;
+// employee.js - Employee dashboard (FIXED)
 
 async function loadProfile() {
   console.log('Loading employee profile...');
   const container = document.getElementById('profileCard') || document.getElementById('profileInfo');
   if (!container) return;
   
-  showLoading(container);
+  // FIXED: Use window.common.showLoading
+  if (window.common?.showLoading) {
+    window.common.showLoading(container);
+  } else {
+    container.innerHTML = '<p>Loading...</p>';
+  }
+  
   try {
-    const profile = await getEmployeeDashboard();
+    // FIXED: Use window.api directly instead of destructuring
+    const profile = await window.api.getEmployeeDashboard();
     console.log('Employee profile:', profile);
     container.innerHTML = `
       <div class="profile-card">
@@ -23,21 +28,25 @@ async function loadProfile() {
   } catch (err) {
     console.error('Load profile error:', err);
     container.innerHTML = '<p>Error loading profile</p>';
-    showMessage(err.message, 'error');
+    window.api?.showMessage(err.message, 'error');
   }
 }
 
 function renderPersonalCharts() {
-  window.charts.renderLineChart('personalActivityChart', [10, 25, 18, 35], ['Week1', 'Week2', 'Week3', 'Week4']);
-  window.charts.renderPieChart('recentUploadsChart', {
+  // FIXED: Use optional chaining for window.charts
+  window.charts?.renderLineChart('personalActivityChart', [10, 25, 18, 35], ['Week1', 'Week2', 'Week3', 'Week4']);
+  window.charts?.renderPieChart('recentUploadsChart', {
     'Public': 3,
     'Internal': 2,
     'Confidential': 1
   });
 }
 
-// Upload
-window.uploadFile = uploadFileHelper;
+// FIXED: Export upload function properly (renamed to avoid conflict with user.js)
+// We'll hook this into window for HTML onclick access
+window.uploadEmployeeFile = function() {
+  window.common?.uploadFileHelper?.('fileInput');
+};
 
 // Init
 document.addEventListener('DOMContentLoaded', loadProfile);

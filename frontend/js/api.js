@@ -1,11 +1,11 @@
 const API_BASE = 'http://127.0.0.1:8000';
 
-// Role map
+// Role map - FIXED: 1=Admin, 2=Manager, 3=Employee, 4=User
 const roleMap = {
-  1: 'User',
-  2: 'Employee',
-  3: 'Manager',
-  4: 'Admin'
+  1: 'Admin',
+  2: 'Manager',
+  3: 'Employee',
+  4: 'User'
 };
 
 async function apiRequest(endpoint, options = {}) {
@@ -73,6 +73,10 @@ async function getCurrentUser() {
 // Admin
 async function getAdminUsers() {
   return apiRequest('/admin/users');
+}
+
+async function getAdminStats() {
+  return apiRequest('/admin/stats');
 }
 
 async function getAdminRoles() {
@@ -153,7 +157,7 @@ async function downloadFile(fileId) {
 // Global window export
 window.api = {
   apiRequest, showMessage, logout, loginUser, registerUser, getCurrentUser,
-  getAdminUsers, getAdminRoles, updateUserRole, createAdmin, deleteUser, updateUser,
+  getAdminUsers, getAdminStats, getAdminRoles, updateUserRole, createAdmin, deleteUser, updateUser,
   getManagerEmployees, getEmployeeDetails, updateEmployee,
   getEmployeeDashboard, getEmployeeProfile,
   uploadFile, downloadFile,

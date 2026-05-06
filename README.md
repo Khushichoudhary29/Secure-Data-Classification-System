@@ -186,7 +186,6 @@ uvicorn app.main:app --reload
 1. Install VS Code **Live Server** extension.
 2. Right-click `frontend/pages/login.html` → **Open with Live Server**.
 
-**Note:** CORS enabled for `localhost` origins.
 
 ## API Routes
 | Method | Endpoint                  | Description                  | Role Access       | Tags   |
@@ -206,17 +205,20 @@ uvicorn app.main:app --reload
 
 ## Workflow
 ```
-1. User visits login.html → POST /auth/login → Receives JWT token
-2. Frontend stores token in localStorage
-3. Role-based redirect:
-   Admin → admin_dashboard.html (GET /admin/dashboard)
-   Manager → manager_dashboard.html (GET /manager/dashboard)
-   Employee → employee_dashboard.html (GET /employee/dashboard)
-4. Role-guarded actions:
-   - Upload: POST /files/upload → Encrypted .enc file
-   - Download: GET /files/download/{id} → Decrypted + role check
-   - Admin: Manage users/roles via dedicated routes
-5. All requests → JWT verify → RBAC check → Response
+User Login → JWT Token Generated
+        ↓
+Frontend stores token
+        ↓
+Role-based dashboard loaded
+        ↓
+User performs actions:
+  - Upload file
+  - Download file
+  - Admin manages users
+        ↓
+Backend verifies:
+  JWT → Role → Permission
+  
 ```
 
 ## Future Scope
@@ -237,4 +239,6 @@ uvicorn app.main:app --reload
 **Session:** 2025–26
 ---
 
-*This project was developed as part of an academic B.Tech CSE coursework project focused on secure file access and role-based access control systems.*
+## Final Note
+- This project focuses on security, RBAC, and backend architecture.
+- Frontend demo is included for visual presentation purposes.
