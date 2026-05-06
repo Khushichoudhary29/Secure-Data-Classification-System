@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard (Demo)</title>
+
+  <!-- Chart.js (CDN as required) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      /* Required design tokens */
+      --bg: #0b1220;
+      --card: rgba(255,255,255,.06);
+      --primary: #38bdf8;
+      --accent: #0ea5e9;
+      --danger: #ef4444;
+      --text: #e5e7eb;
+
+      /* Additional derived tokens (still consistent) */
+      --bg2: #0f172a;
+      --border: rgba(255,255,255,.12);
+      --muted: #9ca3af;
+      --success: #10b981;
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius-xl: 18px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --trans: 0.2s ease;
+      --ring: rgba(56,189,248,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(56,189,248,.25), transparent 60%),
+        radial-gradient(900px 500px at 90% 0%, rgba(16,185,129,.16), transparent 55%),
+        linear-gradient(135deg, rgba(11,18,32,1), rgba(15,23,42,1));
+      overflow-x:hidden;
+    }
+
+    /* Layout */
+    .app{
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:22px;
+      background: rgba(2,6,23,.65);
+      border-right: 1px solid rgba(255,255,255,.08);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:4px;
+    }
+    .brand .logo{
+      width:42px;height:42px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(56,189,248,.35), rgba(14,165,233,.15));
+      border: 1px solid rgba(56,189,248,.35);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow: 0 10px 30px rgba(56,189,248,.15);
+    }
+    .brand h1{font-size:16px;margin:0;letter-spacing:.2px}
+    .brand p{margin:2px 0 0;color:var(--muted);font-size:12px}
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .nav button{
+      width:100%;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      color:var(--text);
+      border-radius:14px;
+      cursor:pointer;
+      transition: transform var(--trans), background var(--trans), border-color var(--trans);
+    }
+
+    .nav button:hover{
+      transform: translateY(-2px);
+      background: rgba(56,189,248,.10);
+      border-color: rgba(56,189,248,.35);
+    }
+
+    .nav button.active{
+      background: linear-gradient(135deg, rgba(56,189,248,.16), rgba(14,165,233,.08));
+      border-color: rgba(56,189,248,.50);
+      box-shadow: 0 0 0 4px rgba(56,189,248,.12);
+    }
+
+    .nav .icon{
+      width:30px;height:30px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background: rgba(56,189,248,.14);
+      border:1px solid rgba(56,189,248,.26);
+      flex:0 0 auto;
+    }
+
+    .sidebar .meta-foot{
+      margin-top:auto;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+      padding-top:6px;
+    }
+    .sidebar .meta-foot strong{color:var(--text)}
+
+    .main{
+      padding:18px 22px 40px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:16px 18px;
+      border-radius:18px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 10px 35px rgba(0,0,0,.25);
+    }
+
+    .topbar .title{display:flex;flex-direction:column;gap:4px;min-width:260px}
+    .topbar h2{margin:0;font-size:18px;letter-spacing:.2px}
+    .topbar .subtitle{margin:0;color:var(--muted);font-size:13px}
+
+    .user-chip{
+      display:flex;align-items:center;gap:12px;
+      padding:10px 12px;
+      border-radius:16px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .avatar{
+      width:36px;height:36px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background: rgba(16,185,129,.14);
+      border:1px solid rgba(16,185,129,.25);
+      font-weight:800;
+    }
+    .user-chip .meta{display:flex;flex-direction:column;line-height:1.1}
+    .user-chip .meta strong{font-size:13px}
+    .user-chip .meta span{font-size:12px;color:var(--muted)}
+
+    /* Buttons */
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:10px 14px;
+      font-weight:800;
+      background: linear-gradient(45deg, rgba(56,189,248,1), rgba(14,165,233,1));
+      color:white;
+      box-shadow: 0 16px 40px rgba(14,165,233,.18);
+      transition: transform var(--trans), box-shadow var(--trans), filter var(--trans), background var(--trans);
+    }
+
+    .btn:hover{transform: translateY(-2px); filter: brightness(1.04)}
+    .btn:active{transform: translateY(0px) scale(.99); filter: brightness(.98)}
+    .btn:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+
+    .btn-ghost{
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      box-shadow:none;
+      transition: transform var(--trans), background var(--trans), border-color var(--trans);
+    }
+    .btn-ghost:hover{transform: translateY(-2px); background: rgba(56,189,248,.10); border-color: rgba(56,189,248,.35)}
+    .btn-ghost:active{transform: translateY(0px) scale(.99)}
+
+    .btn-danger{
+      background: linear-gradient(45deg, rgba(239,68,68,1), rgba(220,38,38,1));
+      box-shadow: 0 16px 40px rgba(239,68,68,.18);
+      transition: transform var(--trans), box-shadow var(--trans), filter var(--trans);
+    }
+    .btn-danger:hover{filter: brightness(1.04)}
+
+    /* Cards */
+    .glass{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius-xl);
+      padding:18px;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow);
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      transition: transform var(--trans), box-shadow var(--trans);
+    }
+    .card:hover{transform: translateY(-3px)}
+
+    .section-title{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:12px;
+      margin:0 0 14px;
+    }
+    .section-title h3{margin:0;font-size:16px}
+    .section-title p{margin:0;color:var(--muted);font-size:13px}
+
+    /* Typography hierarchy */
+    .h-section{font-size:20px; margin:0; letter-spacing:.2px}
+    .h-card{font-size:14px; margin:0; color:var(--text)}
+    .label-sm{font-size:12px; color:var(--muted)}
+
+    /* Stats */
+    .stats{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap:14px;
+    }
+
+    .stat{
+      padding:18px;
+      border-radius: var(--radius-xl);
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      transition: transform var(--trans), background var(--trans);
+      overflow:hidden;
+      position:relative;
+    }
+    .stat:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(400px 120px at 20% 0%, rgba(56,189,248,.25), transparent 60%);
+      pointer-events:none;
+    }
+    .stat:hover{transform: translateY(-3px)}
+    .stat .label{color:var(--muted);font-size:13px;font-weight:700;position:relative}
+    .stat .value{font-size:28px;margin-top:8px;font-weight:900;position:relative}
+    .stat .trend{margin-top:10px;color:var(--muted);font-size:12px;position:relative}
+
+    /* Charts + table layout */
+    .grid-2{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+      align-items:start;
+    }
+
+    .charts{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap:14px;
+    }
+
+    .chart-card{padding:16px}
+
+    .chart-title{margin:0 0 10px;font-size:14px;color:rgba(125,211,252,.95)}
+
+    .canvas-wrap{height:240px; position:relative}
+    canvas{width:100% !important; height:100% !important;}
+
+    /* Table */
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:680px}
+
+    thead th{
+      text-align:left;
+      font-size:12px;
+      color:rgba(147,197,253,.95);
+      padding:14px 12px;
+      background: rgba(2,6,23,.35);
+      position:sticky; top:0;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      white-space:nowrap;
+      letter-spacing:.2px;
+    }
+
+    tbody tr{transition: background var(--trans), transform var(--trans)}
+    tbody tr:hover{background: rgba(56,189,248,.08)}
+
+    tbody td{
+      padding:12px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+      color: var(--text);
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+
+    .role-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      font-weight:900;
+      font-size:12px;
+      line-height:1;
+    }
+
+    .dot{width:8px;height:8px;border-radius:50%}
+
+    .role-admin{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.12)}
+    .role-admin .dot{background: rgba(239,68,68,1)}
+
+    .role-manager{border-color: rgba(16,185,129,.35); background: rgba(16,185,129,.12)}
+    .role-manager .dot{background: rgba(16,185,129,1)}
+
+    .role-user{border-color: rgba(56,189,248,.35); background: rgba(56,189,248,.12)}
+    .role-user .dot{background: rgba(56,189,248,1)}
+
+    .actions{display:flex;gap:10px}
+
+    /* Upload */
+    .upload{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+
+    .upload-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+    .file{
+      flex:1 1 280px;
+      padding:14px;
+      border-radius: var(--radius-lg);
+      border:1px dashed rgba(125,211,252,.35);
+      background: rgba(56,189,248,.06);
+      color:var(--muted);
+      min-width: 240px;
+    }
+
+    .file input[type="file"]{margin-top:8px}
+
+    /* Activity Logs */
+    .logs-grid{display:grid; grid-template-columns: 1fr; gap:12px}
+
+    .log-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      transition: transform var(--trans), background var(--trans);
+    }
+
+    .log-row:hover{transform: translateY(-2px); background: rgba(56,189,248,.08)}
+
+    .log-left{display:flex; gap:12px; align-items:flex-start}
+
+    .log-icon{
+      width:34px; height:34px; border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      flex:0 0 auto;
+      font-size:16px;
+    }
+
+    .log-title{font-weight:900; font-size:13px; margin:0}
+    .log-desc{margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.35}
+    .log-time{color:var(--muted); font-size:12px; white-space:nowrap; padding-top:2px}
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      top:18px; right:18px;
+      padding:12px 14px;
+      border-radius:16px;
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.14);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      transform: translateY(-8px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index:9999;
+      max-width: 360px;
+    }
+    .toast.show{opacity:1;transform: translateY(0)}
+    .toast .t-title{font-weight:900;margin:0 0 2px;font-size:13px}
+    .toast .t-msg{margin:0;color:var(--muted);font-size:12px}
+    .toast.success{border-color: rgba(16,185,129,.35)}
+    .toast.error{border-color: rgba(239,68,68,.35)}
+    .toast.info{border-color: rgba(56,189,248,.35)}
+
+    /* Responsive */
+    .hamburger{display:none}
+
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr;}
+      .sidebar{
+        position:fixed;
+        transform: translateX(-110%);
+        transition: transform .25s ease;
+        z-index:1000;
+        width:280px;
+      }
+      .sidebar.open{transform: translateX(0)}
+      .main{padding:14px 14px 40px}
+      .stats{grid-template-columns: repeat(2, minmax(180px, 1fr));}
+      .grid-2{grid-template-columns:1fr;}
+      table{min-width: 620px}
+      .hamburger{
+        display:inline-flex; align-items:center; justify-content:center;
+        width:46px; height:46px; border-radius:16px;
+        border:1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.05);
+        cursor:pointer;
+      }
+    }
+
+    @media (max-width: 520px){
+      .stats{grid-template-columns: 1fr;}
+      .charts{grid-template-columns: 1fr;}
+      .topbar{flex-wrap:wrap}
+      .topbar .title{min-width: 0; width:100%}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{transition:none !important; scroll-behavior:auto !important}
+      .stat:hover,.nav button:hover,.btn:hover{transform:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">🛡️</div>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Secure Data Classification</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Admin navigation">
+        <button type="button" class="nav-item" data-active="dashboard" onclick="ui.setActive('dashboard')">
+          <span style="display:flex;align-items:center;gap:12px">
+            <span class="icon">📊</span>
+            Admin
+          </span>
+          <span style="color:var(--muted);font-weight:900">›</span>
+        </button>
+        <button type="button" class="nav-item" data-active="users" onclick="ui.setActive('users')">
+          <span style="display:flex;align-items:center;gap:12px">
+            <span class="icon">👥</span>
+            Users
+          </span>
+          <span style="color:var(--muted);font-weight:900">›</span>
+        </button>
+        <button type="button" class="nav-item" data-active="uploads" onclick="ui.setActive('uploads')">
+          <span style="display:flex;align-items:center;gap:12px">
+            <span class="icon">⬆️</span>
+            Uploads
+          </span>
+          <span style="color:var(--muted);font-weight:900">›</span>
+        </button>
+        <button type="button" class="nav-item" onclick="ui.logoutDemo()">
+          <span style="display:flex;align-items:center;gap:12px">
+            <span class="icon" style="background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.26)">🚪</span>
+            Logout
+          </span>
+          <span style="color:var(--muted);font-weight:900">›</span>
+        </button>
+      </nav>
+
+      <div class="meta-foot">
+        <strong>Demo UI</strong>
+        <div>No backend calls. All data is hardcoded.</div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="topbar">
+        <button class="hamburger" aria-label="Toggle sidebar" onclick="ui.toggleSidebar()">☰</button>
+        <div class="title">
+          <h2 id="pageTitle">Admin Dashboard</h2>
+          <p class="subtitle" id="pageSubtitle">Overview, users, charts, and uploads</p>
+        </div>
+
+        <div class="user-chip" role="group" aria-label="User info">
+          <div class="avatar" id="avatarText">AD</div>
+          <div class="meta">
+            <strong id="userName">Admin</strong>
+            <span id="userEmail">admin@gmail.com</span>
+          </div>
+          <button class="btn btn-ghost" style="padding:10px 12px" onclick="ui.logoutDemo()">Logout</button>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <section class="stats" aria-label="Statistics">
+        <div class="stat">
+          <div class="label">Total Users</div>
+          <div class="value" id="statTotalUsers">0</div>
+          <div class="trend">Across all roles</div>
+        </div>
+        <div class="stat">
+          <div class="label">Active Admins</div>
+          <div class="value" id="statActiveAdmins">0</div>
+          <div class="trend">Currently active</div>
+        </div>
+        <div class="stat">
+          <div class="label">Files Uploaded</div>
+          <div class="value" id="statFilesUploaded">0</div>
+          <div class="trend">Last 7 days (sample)</div>
+        </div>
+        <div class="stat">
+          <div class="label">System Status</div>
+          <div class="value" id="statSystemStatus">● Online</div>
+          <div class="trend">All services operational</div>
+        </div>
+      </section>
+
+      <!-- Charts + Users table -->
+      <section class="grid-2" id="content">
+        <div class="charts">
+          <div class="card chart-card">
+            <div class="section-title" style="margin-bottom:10px">
+              <div>
+                <h3 class="chart-title">Role Distribution</h3>
+                <p class="label-sm" style="margin:0">Static sample</p>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="roleChart" aria-label="Role distribution chart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="section-title" style="margin-bottom:10px">
+              <div>
+                <h3 class="chart-title">Upload Activity</h3>
+                <p class="label-sm" style="margin:0">Bar chart</p>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="uploadActivityChart" aria-label="Upload activity chart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="section-title" style="margin-bottom:10px">
+              <div>
+                <h3 class="chart-title">User Growth</h3>
+                <p class="label-sm" style="margin:0">Line chart</p>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="userGrowthChart" aria-label="User growth chart"></canvas>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="section-title" style="margin-bottom:10px">
+              <div>
+                <h3 class="chart-title">System Health</h3>
+                <p class="label-sm" style="margin:0">Status overview</p>
+              </div>
+            </div>
+            <div class="logs-grid" style="gap:10px">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+                <div>
+                  <div style="font-weight:950">Auth Service</div>
+                  <div style="color:var(--muted);font-size:12px">JWT validation</div>
+                </div>
+                <div class="role-pill role-admin"><span class="dot"></span>Online</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+                <div>
+                  <div style="font-weight:950">File Processor</div>
+                  <div style="color:var(--muted);font-size:12px">Classification pipeline</div>
+                </div>
+                <div class="role-pill role-manager"><span class="dot"></span>Online</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:center">
+                <div>
+                  <div style="font-weight:950">Database</div>
+                  <div style="color:var(--muted);font-size:12px">Secure storage</div>
+                </div>
+                <div class="role-pill role-user"><span class="dot"></span>Online</div>
+              </div>
+
+              <div style="color:var(--muted);font-size:12px;line-height:1.4">
+                All systems are operating normally. (UI demo only.)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="glass" style="padding:0">
+            <div style="padding:18px">
+              <div class="section-title">
+                <div>
+                  <h3 style="margin:0" class="h-card">Users</h3>
+                  <p>Sample user management (UI only)</p>
+                </div>
+                <button class="btn btn-ghost" type="button" onclick="ui.createAdminDemo()">+ Create Admin</button>
+              </div>
+
+              <div class="table-wrap">
+                <table aria-label="Users table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th style="width:180px">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTbody">
+                    <!-- populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div style="padding:0 18px 18px">
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn" type="button" onclick="ui.exportCSVDemo()">Export CSV</button>
+                <button class="btn btn-ghost" type="button" onclick="ui.refreshDemo()">Refresh</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Logs Panel -->
+          <div class="glass" style="margin-top:14px; padding:18px">
+            <div class="section-title" style="margin-bottom:12px">
+              <div>
+                <h3 class="h-card" style="margin:0">Activity Logs</h3>
+                <p>Recent activity (sample)</p>
+              </div>
+              <span class="label-sm" style="font-weight:800">Last 24h</span>
+            </div>
+
+            <div class="logs-grid" aria-label="Activity log entries">
+              <div class="log-row">
+                <div class="log-left">
+                  <div class="log-icon" aria-hidden="true">👤</div>
+                  <div>
+                    <p class="log-title">User created</p>
+                    <p class="log-desc">New user <strong>user@gmail.com</strong> was added to the system.</p>
+                  </div>
+                </div>
+                <div class="log-time">2h ago</div>
+              </div>
+
+              <div class="log-row">
+                <div class="log-left">
+                  <div class="log-icon" aria-hidden="true">📁</div>
+                  <div>
+                    <p class="log-title">File uploaded</p>
+                    <p class="log-desc">A document was uploaded and classified using policy: <strong>Confidential</strong>.</p>
+                  </div>
+                </div>
+                <div class="log-time">6h ago</div>
+              </div>
+
+              <div class="log-row">
+                <div class="log-left">
+                  <div class="log-icon" aria-hidden="true">🛠️</div>
+                  <div>
+                    <p class="log-title">Role updated</p>
+                    <p class="log-desc">Admin rights updated for <strong>manager@gmail.com</strong> (UI demo only).</p>
+                  </div>
+                </div>
+                <div class="log-time">Yesterday</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upload Section -->
+      <section class="upload" id="uploadsSection">
+        <div class="glass">
+          <div class="section-title">
+            <div>
+              <h3>Upload Files</h3>
+              <p>UI demo only — selects a file and shows a success toast</p>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span style="color:var(--muted);font-size:12px;font-weight:700">Accepted: any file</span>
+            </div>
+          </div>
+
+          <div class="upload-row">
+            <div class="file">
+              <div style="font-weight:950;color:var(--text)">Choose a file</div>
+              <div style="margin-top:6px">No upload will occur.</div>
+              <label for="demoFileInput" style="display:block;margin-top:10px; color:var(--muted); font-size:12px; font-weight:800;">Select file</label>
+              <input type="file" id="demoFileInput" />
+            </div>
+
+            <button class="btn" type="button" onclick="ui.uploadDemo()">Upload</button>
+            <button class="btn btn-ghost" type="button" onclick="ui.clearUploadDemo()">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toast -->
+      <div id="toast" class="toast" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <script>
+    // Hardcoded sample data
+    const users = [
+      { name: "Admin", email: "admin@gmail.com", role: "Admin" },
+      { name: "Manager", email: "manager@gmail.com", role: "Manager" },
+      { name: "User", email: "user@gmail.com", role: "User" }
+    ];
+
+    const statsSample = {
+      totalUsers: users.length,
+      activeAdmins: 1,
+      filesUploaded: 38,
+      systemStatus: "Online"
+    };
+
+    const chartSample = {
+      roleDist: { Admin: 1, Manager: 1, User: 1 },
+      uploadActivityLabels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+      uploadActivity: [4, 7, 5, 9, 6, 8, 3],
+      userGrowthLabels: ["Jan","Feb","Mar","Apr","May","Jun"],
+      userGrowth: [8, 12, 16, 22, 28, 34]
+    };
+
+    const ui = {
+      state: { active: 'dashboard' },
+
+      toggleSidebar(){
+        document.getElementById('sidebar').classList.toggle('open');
+      },
+
+      setActive(which){
+        ui.state.active = which;
+        const map = {
+          dashboard: {t:'Admin Dashboard', s:'Overview, stats, and charts'},
+          users: {t:'Users', s:'Manage sample users (UI only)'},
+          uploads: {t:'Uploads', s:'Upload UI with static demo behavior'}
+        };
+        const m = map[which] || map.dashboard;
+        document.getElementById('pageTitle').textContent = m.t;
+        document.getElementById('pageSubtitle').textContent = m.s;
+
+        // Sidebar active styling (UI-only)
+        document.querySelectorAll('.nav-item').forEach(btn => {
+          const v = btn.getAttribute('data-active');
+          if(!v) return;
+          btn.classList.toggle('active', v === which);
+        });
+
+        ui.toast('info', 'Navigation', `Switched to: ${m.t}`);
+        document.getElementById('sidebar').classList.remove('open');
+      },
+
+      logoutDemo(){
+        localStorage.removeItem('token');
+        ui.toast('info', 'Logout', 'Demo logout (no backend).');
+      },
+
+      toast(type, title, msg){
+        const el = document.getElementById('toast');
+        el.className = 'toast show ' + type;
+        el.innerHTML = `<div class="t-title">${escapeHtml(title)}</div><div class="t-msg">${escapeHtml(msg)}</div>`;
+        clearTimeout(ui._toastTimer);
+        ui._toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 3200);
+      },
+
+      createAdminDemo(){
+        ui.toast('success', 'Create Admin', 'Feature is UI-only in this demo.');
+      },
+
+      exportCSVDemo(){
+        const header = ['Name','Email','Role'];
+        const rows = users.map(u => [u.name, u.email, u.role]);
+        const csv = [header, ...rows]
+          .map(r => r.map(v => '"' + String(v).replaceAll('"','""') + '"').join(','))
+          .join('\n');
+
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'users-demo.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        ui.toast('success', 'Export CSV', 'Downloaded users-demo.csv');
+      },
+
+      refreshDemo(){
+        ui.renderUsers();
+        ui.renderCharts();
+        ui.updateStats();
+        ui.toast('info', 'Refreshed', 'UI refreshed with the same static sample data.');
+      },
+
+      uploadDemo(){
+        const input = document.getElementById('demoFileInput');
+        const file = input.files && input.files[0];
+        if(!file){
+          ui.toast('error', 'Upload', 'Select a file first.');
+          return;
+        }
+        ui.toast('success', 'Uploaded (Demo)', `“${file.name}” uploaded successfully (no backend).`);
+      },
+
+      clearUploadDemo(){
+        document.getElementById('demoFileInput').value = '';
+        ui.toast('info', 'Cleared', 'File selection cleared.');
+      },
+
+      updateStats(){
+        document.getElementById('statTotalUsers').textContent = String(statsSample.totalUsers);
+        document.getElementById('statActiveAdmins').textContent = String(statsSample.activeAdmins);
+        document.getElementById('statFilesUploaded').textContent = String(statsSample.filesUploaded);
+        document.getElementById('statSystemStatus').textContent = `● ${statsSample.systemStatus}`;
+      },
+
+      renderUsers(){
+        const tbody = document.getElementById('usersTbody');
+        tbody.innerHTML = users.map(u => {
+          // Remove any “Unknown” role display: only render known roles.
+          let roleClass = 'role-user';
+          if(u.role === 'Admin') roleClass = 'role-admin';
+          else if(u.role === 'Manager') roleClass = 'role-manager';
+          else if(u.role === 'User') roleClass = 'role-user';
+          else return ''; // silently skip unknown roles without displaying “Unknown” text
+
+          return `
+            <tr>
+              <td>${escapeHtml(u.name)}</td>
+              <td>${escapeHtml(u.email)}</td>
+              <td>
+                <span class="role-pill ${roleClass}"><span class="dot"></span>${escapeHtml(u.role)}</span>
+              </td>
+              <td>
+                <div class="actions">
+                  <button class="btn btn-ghost" type="button" onclick="ui.editUserDemo('${escapeAttr(u.name)}')">Edit</button>
+                  <button class="btn btn-danger" type="button" onclick="ui.deleteUserDemo('${escapeAttr(u.email)}')">Delete</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+      },
+
+      editUserDemo(name){
+        ui.toast('info', 'Edit User', `Edit clicked for: ${name} (UI only).`);
+      },
+
+      deleteUserDemo(email){
+        ui.toast('info', 'Delete User', `Delete clicked for: ${email} (UI only).`);
+      },
+
+      _charts: {},
+
+      renderCharts(){
+        const root = getComputedStyle(document.body);
+        const gridTextColor = (root.getPropertyValue('--text') || '#e5e7eb').trim();
+        const mutedColor = (root.getPropertyValue('--muted') || '#9ca3af').trim();
+        const primary = (root.getPropertyValue('--primary') || '#38bdf8').trim();
+        const accent = (root.getPropertyValue('--accent') || '#0ea5e9').trim();
+        const danger = (root.getPropertyValue('--danger') || '#ef4444').trim();
+
+        const gridLine = 'rgba(255,255,255,.06)';
+
+        // Role distribution (pie)
+        const roleCtx = document.getElementById('roleChart');
+        if(ui._charts.role) ui._charts.role.destroy();
+        ui._charts.role = new Chart(roleCtx, {
+          type: 'pie',
+          data: {
+            labels: Object.keys(chartSample.roleDist),
+            datasets: [{
+              data: Object.values(chartSample.roleDist),
+              backgroundColor: [
+                'rgba(239,68,68,.70)',
+                'rgba(16,185,129,.65)',
+                'rgba(56,189,248,.65)'
+              ],
+              borderColor: 'rgba(255,255,255,.15)',
+              borderWidth: 1,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: { color: gridTextColor, font: { size: 12, weight: '700' } },
+                position: 'bottom'
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,.72)',
+                borderColor: 'rgba(255,255,255,.15)',
+                borderWidth: 1,
+                titleColor: gridTextColor,
+                bodyColor: mutedColor
+              }
+            }
+          }
+        });
+
+        // Upload activity (bar)
+        const upCtx = document.getElementById('uploadActivityChart');
+        if(ui._charts.upload) ui._charts.upload.destroy();
+        ui._charts.upload = new Chart(upCtx, {
+          type: 'bar',
+          data: {
+            labels: chartSample.uploadActivityLabels,
+            datasets: [{
+              label: 'Uploads',
+              data: chartSample.uploadActivity,
+              backgroundColor: 'rgba(56,189,248,.35)',
+              borderColor: 'rgba(56,189,248,1)',
+              borderWidth: 1.5,
+              borderRadius: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: { color: gridTextColor, font: { size: 12, weight: '700' } },
+                position: 'bottom'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: gridTextColor, font: { size: 12, weight: '700' } },
+                grid: { color: gridLine, drawBorder: false }
+              },
+              x: {
+                ticks: { color: mutedColor, font: { size: 12, weight: '700' } },
+                grid: { display:false }
+              }
+            }
+          }
+        });
+
+        // User growth (line)
+        const growCtx = document.getElementById('userGrowthChart');
+        if(ui._charts.growth) ui._charts.growth.destroy();
+        ui._charts.growth = new Chart(growCtx, {
+          type: 'line',
+          data: {
+            labels: chartSample.userGrowthLabels,
+            datasets: [{
+              label: 'Users',
+              data: chartSample.userGrowth,
+              borderColor: 'rgba(16,185,129,1)',
+              backgroundColor: 'rgba(16,185,129,.12)',
+              tension: 0.35,
+              fill: true,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBackgroundColor: 'rgba(16,185,129,1)',
+              pointBorderColor: 'rgba(255,255,255,.8)'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                labels: { color: gridTextColor, font: { size: 12, weight: '700' } },
+                position: 'bottom'
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,.72)',
+                borderColor: 'rgba(255,255,255,.15)',
+                borderWidth: 1,
+                titleColor: gridTextColor,
+                bodyColor: mutedColor
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: gridTextColor, font: { size: 12, weight: '700' } },
+                grid: { color: gridLine, drawBorder: false }
+              },
+              x: {
+                ticks: { color: mutedColor, font: { size: 12, weight: '700' } },
+                grid: { display:false }
+              }
+            }
+          }
+        });
+      }
+    };
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','<')
+        .replaceAll('>','>')
+        .replaceAll('"','"')
+        .replaceAll("'",'&#039;');
+    }
+
+    function escapeAttr(str){
+      return String(str).replaceAll('\\','\\\\').replaceAll("'",'\\\'');
+    }
+
+    // Init
+    (function init(){
+      document.getElementById('userName').textContent = 'Admin';
+      document.getElementById('userEmail').textContent = 'admin@gmail.com';
+      document.getElementById('avatarText').textContent = 'AD';
+
+      ui.updateStats();
+      ui.renderUsers();
+      ui.renderCharts();
+
+      // Show default page state
+      ui.setActive('dashboard');
+    })();
+  </script>
+</body>
+</html>
+
