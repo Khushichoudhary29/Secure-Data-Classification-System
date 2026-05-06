@@ -24,15 +24,33 @@
   color: #38bdf8;
 }
 
-/* Table enhancements */
+/* Table enhancements - FIXED: Better padding and hover */
 .table-container {
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-tr:hover {
-  background: rgba(56, 189, 248, 0.1);
+#usersTable thead th {
+  padding: 15px;
+  text-align: left;
+  background: rgba(30, 41, 59, 0.8);
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+#usersTable tbody td {
+  padding: 14px 15px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+}
+
+#usersTable tbody tr {
+  transition: all 0.2s ease;
+}
+
+#usersTable tbody tr:hover {
+  background: rgba(56, 189, 248, 0.15);
+  transform: translateX(2px);
 }
 
 /* Activity logs */
