@@ -13,6 +13,7 @@ def employee_dashboard(user=Depends(role_required(["Employee"]))):
     return {
         "message": "Welcome Employee",
         "name": user.full_name,
+        "full_name": user.full_name,
         "email": user.email,
         "role": user.role.name
     }

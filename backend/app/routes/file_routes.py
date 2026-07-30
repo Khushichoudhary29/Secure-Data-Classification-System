@@ -1,21 +1,44 @@
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 import io
+from sqlalchemy.orm import Session
+from app.core.database import get_db
 
 from app.services.file_service import (
     get_file_by_id,
     get_decrypted_file,
-    check_access
+    check_access,
+    save_encrypted_file
 )
 
-from app.core.security import get_current_user
+from app.core.auth import get_current_user
+from app.models.file_model import File as FileModel
 
 router = APIRouter()
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    return {"message": "Upload working"}   # (replace with your real logic)
+async def upload_file(file: UploadFile = File(...), user=Depends(get_current_user)):
+    try:
+        metadata = await save_encrypted_file(file)
+        return metadata
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("")
+def list_files(db: Session = Depends(get_db), user=Depends(get_current_user)):
+    all_files = db.query(FileModel).all()
+    # Filter files based on user access role
+    accessible_files = []
+    for file in all_files:
+        if check_access(user.role.name, file.classification):
+            accessible_files.append({
+                "id": file.id,
+                "original_filename": file.original_filename,
+                "classification": file.classification
+            })
+    return accessible_files
 
 
 @router.get("/download/{file_id}")

@@ -7,9 +7,7 @@ from app.models.user import User
 from app.models.role import Role
 
 from app.schemas.manager_schema import ManagerUpdateEmployeeSchema
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.core.security import hash_password
 
 router = APIRouter(tags=["Manager"])
 
@@ -85,7 +83,7 @@ def update_employee(
         employee.email = data.email
 
     if data.password:
-        employee.password = pwd_context.hash(data.password)
+        employee.password = hash_password(data.password)
 
     db.commit()
     db.refresh(employee)

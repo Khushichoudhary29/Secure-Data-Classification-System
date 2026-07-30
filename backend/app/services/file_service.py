@@ -94,11 +94,11 @@ def get_file_by_id(file_id: int):
 
     db = SessionLocal()
 
-    files = db.query(File).all()
+    file_record = db.query(File).filter(File.id == file_id).first()
 
     db.close()
 
-    return file
+    return file_record
 
 
 def check_access(user_role: str, file_label: str):
