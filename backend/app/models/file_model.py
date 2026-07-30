@@ -9,3 +9,5 @@ class File(Base):
     stored_filename = Column(String)
     classification = Column(String)
     iv = Column(String)
+    encrypted_dek = Column(String, nullable=True)
+    dek_iv = Column(String, nullable=True)
