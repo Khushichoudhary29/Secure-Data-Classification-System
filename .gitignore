@@ -25,3 +25,6 @@ Thumbs.db
 
 # Uploaded documents
 backend/app/uploads/
+
+# Serialized ML models
+*.pkl
