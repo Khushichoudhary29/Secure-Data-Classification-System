@@ -36,7 +36,10 @@ def list_files(db: Session = Depends(get_db), user=Depends(get_current_user)):
             accessible_files.append({
                 "id": file.id,
                 "original_filename": file.original_filename,
-                "classification": file.classification
+                "classification": file.classification,
+                "encrypted_dek": file.encrypted_dek,
+                "dek_iv": file.dek_iv,
+                "classification_method": "Naive Bayes ML Model"
             })
     return accessible_files
 
@@ -52,7 +55,12 @@ def download_file(file_id: int, user=Depends(get_current_user)):
     if not check_access(user.role.name, file.classification):
         raise HTTPException(status_code=403, detail="Access Denied")
 
-    file_data = get_decrypted_file(file.stored_filename, file.iv)
+    file_data = get_decrypted_file(
+        file.stored_filename,
+        file.iv,
+        file.encrypted_dek,
+        file.dek_iv
+    )
 
     return StreamingResponse(
         io.BytesIO(file_data),
