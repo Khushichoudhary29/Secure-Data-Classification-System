@@ -1,6 +1,12 @@
 import os
 import uuid
-from app.services.encryption_service import encrypt_file
+from app.services.encryption_service import (
+    encrypt_file,
+    generate_dek,
+    encrypt_dek,
+    decrypt_dek,
+    decrypt_file
+)
 from app.services.classification_service import classify_file
 
 UPLOAD_DIR = "app/uploads"
@@ -19,8 +25,14 @@ async def save_encrypted_file(file):
     # 3. Classify file
     classification = classify_file(content)
 
-    # 4. Encrypt file
-    encrypted_data, iv = encrypt_file(file_bytes)
+    # 4. Generate dynamic DEK and encrypt file
+    dek = generate_dek()
+    encrypted_data, iv = encrypt_file(file_bytes, dek)
+
+    # 4.1 Encrypt the DEK using Master KEK (Envelope Encryption)
+    encrypted_dek_bytes, dek_iv_bytes = encrypt_dek(dek)
+    encrypted_dek_hex = encrypted_dek_bytes.hex()
+    dek_iv_hex = dek_iv_bytes.hex()
 
     # 5. Ensure upload folder exists
     if not os.path.exists(UPLOAD_DIR):
@@ -35,22 +47,22 @@ async def save_encrypted_file(file):
         f.write(encrypted_data)
         
     file_record = save_file_metadata(
-    file.filename,
-    unique_name,
-    classification,
-    iv
-)
+        file.filename,
+        unique_name,
+        classification,
+        iv,
+        encrypted_dek_hex,
+        dek_iv_hex
+    )
 
     # 8. Return metadata
     return {
-    "file_id": file_record.id,
-    "original_filename": file.filename,
-    "classification": classification
-}
+        "file_id": file_record.id,
+        "original_filename": file.filename,
+        "classification": classification
+    }
     
-from app.services.encryption_service import decrypt_file
-
-def get_decrypted_file(filename: str, iv: str):
+def get_decrypted_file(filename: str, iv: str, encrypted_dek: str = None, dek_iv: str = None):
 
     file_path = os.path.join(UPLOAD_DIR, filename)
 
@@ -60,14 +72,34 @@ def get_decrypted_file(filename: str, iv: str):
     with open(file_path, "rb") as f:
         encrypted_data = f.read()
 
-    decrypted_data = decrypt_file(encrypted_data, iv)
+    # If the database record contains envelope encryption columns, decrypt DEK then decrypt file
+    if encrypted_dek and dek_iv:
+        try:
+            encrypted_dek_bytes = bytes.fromhex(encrypted_dek)
+            dek_iv_bytes = bytes.fromhex(dek_iv)
+            dek = decrypt_dek(encrypted_dek_bytes, dek_iv_bytes)
+            decrypted_data = decrypt_file(encrypted_data, iv, dek)
+            return decrypted_data
+        except Exception as e:
+            print(f"Failed to decrypt DEK: {e}. Attempting fallback legacy decryption.")
 
-    return decrypted_data
+    # Fallback legacy key decryption
+    try:
+        from app.services.encryption_service import KEY
+        from Crypto.Cipher import AES
+        from Crypto.Util.Padding import unpad
+        iv_bytes = bytes.fromhex(iv)
+        cipher = AES.new(KEY, AES.MODE_CBC, iv_bytes)
+        decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
+        return decrypted_data
+    except Exception as e:
+        print(f"Legacy decryption failed: {e}")
+        return None
 
 from app.models.file_model import File
 from app.core.database import SessionLocal
 
-def save_file_metadata(original, stored, classification, iv):
+def save_file_metadata(original, stored, classification, iv, encrypted_dek=None, dek_iv=None):
 
     db = SessionLocal()
 
@@ -75,7 +107,9 @@ def save_file_metadata(original, stored, classification, iv):
         original_filename=original,
         stored_filename=stored,
         classification=classification,
-        iv=iv
+        iv=iv,
+        encrypted_dek=encrypted_dek,
+        dek_iv=dek_iv
     )
 
     db.add(file)
