@@ -166,8 +166,19 @@ h1, h2, h3, h4, h5, h6 {
   transition: margin-left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 }
 
-.sidebar.hidden + .main {
+.sidebar.hidden ~ .main {
   margin-left: 0;
+}
+
+/* Dashboard container columns flow */
+.main .container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 100%;
+  min-height: auto;
+  padding: 12px 24px;
 }
 
 /* Role Banner Headers */
