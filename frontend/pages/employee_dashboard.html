@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Dashboard - Secure Data Classification</title>
-<link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/components.css">
-
 </head>
 <body>
     <nav class="sidebar hidden">
-        <h2>💼 Employee Portal</h2>
+        <h2><i class="fa-solid fa-briefcase" style="color: #38bdf8;"></i>Employee Portal</h2>
         <ul class="sidebar-nav">
-            <li><button onclick="loadProfile()">👤 Profile</button></li>
-            <li><button onclick="loadDashboard()">📊 My Stats</button></li>
-<li><button onclick="uploadFileHelper()">⬆️ Upload</button></li>
-            <li><button onclick="logout()">🚪 Logout</button></li>
+            <li><button class="active" onclick="loadDashboard()"><i class="fa-solid fa-chart-pie"></i> Dashboard</button></li>
+            <li><button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></li>
         </ul>
     </nav>
     
@@ -29,8 +27,8 @@
     <main class="main">
         <div class="container">
             <header class="role-header">
-                <h1>Employee Dashboard <span id="roleDisplay" class="role-badge role-employee"></span></h1>
-                <button onclick="logout()" class="btn btn-danger">Logout</button>
+                <h1><i class="fa-solid fa-gauge-high"></i> Employee Workspace <span id="roleDisplay" class="role-badge role-employee"></span></h1>
+                <button onclick="logout()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             </header>
             
             <!-- Profile Card -->
@@ -64,11 +62,22 @@
                 </div>
             </div>
             
-            <!-- Upload Section -->
+            <!-- Secure Upload Section -->
+            <div class="glass-card" style="margin-bottom: 30px;">
+                <h2><i class="fa-solid fa-cloud-arrow-up" style="color: #38bdf8; margin-right: 10px;"></i>Secure Document Upload</h2>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    <p>Drag & Drop or Click to Upload Document for Auto-Classification</p>
+                    <input type="file" id="fileInput" accept="*/*" style="display: none;" onchange="uploadFileHelper()">
+                </div>
+            </div>
+
+            <!-- Secure Files List -->
             <div class="glass-card">
-                <h2>⬆️ Secure Upload</h2>
-                <input type="file" id="fileInput" accept="*/*">
-                <button onclick="uploadFileHelper()" class="btn">Upload File</button>
+                <h2><i class="fa-solid fa-folder-open" style="color: #38bdf8; margin-right: 10px;"></i>Secure Classified Documents</h2>
+                <div id="fileList">
+                    <p style="opacity: 0.7; text-align: center; padding: 20px 0;"><i class="fa-solid fa-circle-exclamation"></i> No accessible documents found.</p>
+                </div>
             </div>
         </div>
     </main>

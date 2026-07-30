@@ -4,20 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Secure Data Classification</title>
-<link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="../css/components.css">
-
 </head>
 <body>
     <nav class="sidebar hidden">
-        <h2>🔧 Admin Panel</h2>
+        <h2><i class="fa-solid fa-user-gear" style="color: #38bdf8;"></i>Admin Panel</h2>
         <ul class="sidebar-nav">
-            <li><button onclick="loadDashboard()">📊 Dashboard</button></li>
-            <li><button onclick="loadUsers()">👥 Users</button></li>
-            <li><button onclick="loadUsers()">👥 Users</button></li>
-            <li><button onclick="uploadFileHelper('fileInput')">⬆️ Upload</button></li>
-            <li><button onclick="logout()">🚪 Logout</button></li>
+            <li><button class="active" onclick="loadDashboard()"><i class="fa-solid fa-chart-pie"></i> Dashboard</button></li>
+            <li><button onclick="loadUsers()"><i class="fa-solid fa-users-gear"></i> User Settings</button></li>
+            <li><button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></li>
         </ul>
     </nav>
     
@@ -30,8 +28,8 @@
     <main class="main">
         <div class="container">
             <header class="role-header">
-                <h1>Admin Dashboard <span id="roleDisplay" class="role-badge role-admin"></span></h1>
-                <button onclick="logout()" class="btn btn-danger">Logout</button>
+                <h1><i class="fa-solid fa-gauge-high"></i> Admin Workspace <span id="roleDisplay" class="role-badge role-admin"></span></h1>
+                <button onclick="logout()" class="btn btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             </header>
             
             <!-- Stats Cards -->
@@ -67,17 +65,19 @@
             </div>
             
             <!-- Users Table -->
-            <div class="glass-card">
-                <h2>👥 User Management</h2>
-                <button onclick="openCreateAdminModal()" class="btn">+ Create Admin</button>
+            <div class="glass-card" style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0;"><i class="fa-solid fa-users-gear" style="color: #38bdf8; margin-right: 10px;"></i>User Management</h2>
+                    <button onclick="openCreateAdminModal()" class="btn" style="width: auto; padding: 10px 20px;"><i class="fa-solid fa-user-plus"></i> Create Admin</button>
+                </div>
                 <div class="table-container">
                     <table id="usersTable">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Actions</th>
+                                <th><i class="fa-regular fa-user"></i> Name</th>
+                                <th><i class="fa-regular fa-envelope"></i> Email</th>
+                                <th><i class="fa-solid fa-user-shield"></i> Role</th>
+                                <th><i class="fa-solid fa-sliders"></i> Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -85,10 +85,30 @@
                 </div>
             </div>
             
+            <!-- Secure Upload Section -->
+            <div class="glass-card" style="margin-bottom: 30px;">
+                <h2><i class="fa-solid fa-cloud-arrow-up" style="color: #38bdf8; margin-right: 10px;"></i>Secure Document Upload</h2>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    <p>Drag & Drop or Click to Upload Document for Auto-Classification</p>
+                    <input type="file" id="fileInput" accept="*/*" style="display: none;" onchange="uploadFileHelper()">
+                </div>
+            </div>
+
+            <!-- Secure Files List -->
+            <div class="glass-card" style="margin-bottom: 30px;">
+                <h2><i class="fa-solid fa-folder-open" style="color: #38bdf8; margin-right: 10px;"></i>Secure Classified Documents</h2>
+                <div id="fileList">
+                    <p style="opacity: 0.7; text-align: center; padding: 20px 0;"><i class="fa-solid fa-circle-exclamation"></i> No accessible documents found.</p>
+                </div>
+            </div>
+
             <!-- Activity Logs -->
             <div class="glass-card">
-                <h2>📋 Activity Logs</h2>
-                <div id="activityLogs"></div>
+                <h2><i class="fa-solid fa-receipt" style="color: #38bdf8; margin-right: 10px;"></i>Real-Time Activity Audit Logs</h2>
+                <div id="activityLogs">
+                    <p style="opacity: 0.7;"><i class="fa-solid fa-spinner fa-spin"></i> Audit engine logging active user events...</p>
+                </div>
             </div>
         </div>
     </main>
@@ -102,6 +122,30 @@
                 <button onclick="updateRoleConfirm()" class="btn">Update</button>
                 <button onclick="closeModal()" class="btn btn-danger">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="createAdminModal" class="modal">
+        <div class="modal-content glass-card">
+            <h2>Create New Admin</h2>
+            <form id="createAdminForm">
+                <div class="form-group">
+                    <label for="adminName">Full Name</label>
+                    <input type="text" id="adminName" placeholder="Admin Full Name" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn">Create</button>
+                    <button type="button" onclick="closeModal()" class="btn btn-danger">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
     
