@@ -114,6 +114,11 @@ async function loadFiles() {
           const cls = f.classification.toLowerCase();
           const icon = getFileIcon(f.original_filename);
           const dateStr = f.uploaded_at ? new Date(f.uploaded_at).toLocaleDateString() : new Date().toLocaleDateString();
+          
+          const isEnvelope = f.encrypted_dek && f.dek_iv;
+          const encMethod = isEnvelope ? "Envelope KEK/DEK" : "AES-256 Legacy";
+          const classMethod = f.classification_method || "Rule Heuristic";
+          
           return `
             <div class="file-card fade-in">
               <div class="file-card-top">
@@ -122,9 +127,10 @@ async function loadFiles() {
               </div>
               <div>
                 <h4 class="file-card-title" title="${f.original_filename}">${f.original_filename}</h4>
-                <div class="file-card-meta">
+                <div class="file-card-meta" style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; margin-top: 8px;">
                   <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
-                  <span><i class="fa-solid fa-shield-halved"></i> AES-256 Secured</span>
+                  <span><i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i> ${encMethod}</span>
+                  <span style="color: #a855f7;"><i class="fa-solid fa-brain"></i> AI: ${classMethod}</span>
                 </div>
               </div>
               <div class="file-card-actions">
