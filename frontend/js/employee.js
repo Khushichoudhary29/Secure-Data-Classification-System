@@ -1,11 +1,10 @@
-// employee.js - Employee dashboard (FIXED)
+let currentUser = null;
 
 async function loadProfile() {
   console.log('Loading employee profile...');
   const container = document.getElementById('profileCard') || document.getElementById('profileInfo');
   if (!container) return;
   
-  // FIXED: Use window.common.showLoading
   if (window.common?.showLoading) {
     window.common.showLoading(container);
   } else {
@@ -13,8 +12,8 @@ async function loadProfile() {
   }
   
   try {
-    // FIXED: Use window.api directly instead of destructuring
     const profile = await window.api.getEmployeeDashboard();
+    currentUser = profile;
     console.log('Employee profile:', profile);
     container.innerHTML = `
       <div class="profile-card">
@@ -23,7 +22,6 @@ async function loadProfile() {
         <span class="role-badge role-employee">Employee</span>
       </div>
     `;
-    // Load charts
     renderPersonalCharts();
   } catch (err) {
     console.error('Load profile error:', err);
@@ -33,7 +31,6 @@ async function loadProfile() {
 }
 
 function renderPersonalCharts() {
-  // FIXED: Use optional chaining for window.charts
   window.charts?.renderLineChart('personalActivityChart', [10, 25, 18, 35], ['Week1', 'Week2', 'Week3', 'Week4']);
   window.charts?.renderPieChart('recentUploadsChart', {
     'Public': 3,
@@ -42,13 +39,44 @@ function renderPersonalCharts() {
   });
 }
 
-// FIXED: Export upload function properly (renamed to avoid conflict with user.js)
-// We'll hook this into window for HTML onclick access
+// Open profile modal
+window.openProfileModal = function() {
+  const nameInput = document.getElementById('profileName');
+  if (nameInput && currentUser) nameInput.value = currentUser.full_name || '';
+  window.common?.openModal('profileModal');
+};
+
+function initProfileForm() {
+  const form = document.getElementById('profileForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('profileName')?.value.trim();
+    if (!full_name) {
+      window.api.showMessage('Please enter your name', 'error');
+      return;
+    }
+    try {
+      await window.api.updateMyProfile({ full_name });
+      window.api.showMessage('Profile updated successfully', 'success');
+      window.common?.closeModal();
+      loadProfile();
+    } catch (err) {
+      console.error('Update profile error:', err);
+      window.api.showMessage(err.message || 'Failed to update profile', 'error');
+    }
+  });
+}
+
+// Export upload function
 window.uploadEmployeeFile = function() {
   window.common?.uploadFileHelper?.('fileInput');
 };
 
 // Init
-document.addEventListener('DOMContentLoaded', loadProfile);
+document.addEventListener('DOMContentLoaded', () => {
+  loadProfile();
+  initProfileForm();
+});
 
 window.employee = { loadProfile };

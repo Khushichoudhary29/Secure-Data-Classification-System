@@ -1,4 +1,4 @@
-// user.js - User dashboard (FIXED)
+let currentUser = null;
 
 async function loadProfile() {
   console.log('Loading user profile...');
@@ -7,8 +7,8 @@ async function loadProfile() {
   if (!container) return;
 
   try {
-    // FIXED: Use window.api directly instead of destructuring
     const profile = await window.api.getCurrentUser();
+    currentUser = profile;
     console.log('User profile:', profile);
 
     container.innerHTML = `
@@ -33,10 +33,37 @@ window.uploadUserFile = function() {
 
 // Open profile modal
 function openProfileModal() {
+  const nameInput = document.getElementById('profileName');
+  if (nameInput && currentUser) nameInput.value = currentUser.full_name || '';
   window.common?.openModal('profileModal');
 }
 
+function initProfileForm() {
+  const form = document.getElementById('profileForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('profileName')?.value.trim();
+    if (!full_name) {
+      window.api.showMessage('Please enter your name', 'error');
+      return;
+    }
+    try {
+      await window.api.updateMyProfile({ full_name });
+      window.api.showMessage('Profile updated successfully', 'success');
+      window.common?.closeModal();
+      loadProfile();
+    } catch (err) {
+      console.error('Update profile error:', err);
+      window.api.showMessage(err.message || 'Failed to update profile', 'error');
+    }
+  });
+}
+
 // Init
-document.addEventListener('DOMContentLoaded', loadProfile);
+document.addEventListener('DOMContentLoaded', () => {
+  loadProfile();
+  initProfileForm();
+});
 
 window.user = { loadProfile, openProfileModal };

@@ -80,11 +80,11 @@ try {
             </span>
           </td>
           <td>
-            <button onclick="admin.editRole(${user.id}, ${roleId ?? 'null'})" class="btn small">
-              Edit
+            <button onclick="admin.editRole(${user.id}, ${roleId ?? 'null'})" class="btn small" style="padding: 6px 12px; font-size: 0.8rem;">
+              <i class="fa-solid fa-user-pen"></i> Edit
             </button>
-            <button onclick="admin.deleteUserConfirm(${user.id})" class="btn btn-danger small">
-              Delete
+            <button onclick="admin.deleteUserConfirm(${user.id})" class="btn btn-danger small" style="padding: 6px 12px; font-size: 0.8rem;">
+              <i class="fa-solid fa-trash-can"></i> Delete
             </button>
           </td>
         </tr>
@@ -157,7 +157,9 @@ function deleteUserConfirm(userId) {
 
 // Create admin modal
 function openCreateAdminModal() {
-  window.api.showMessage('Create admin feature ready', 'info');
+  const form = document.getElementById('createAdminForm');
+  if (form) form.reset();
+  window.common?.openModal('createAdminModal');
 }
 
 // PHASE 1: Removed mock data functions - using real backend data only
@@ -218,8 +220,38 @@ function renderRoleChart(users) {
 
 
 
+function initAdminForm() {
+  const form = document.getElementById('createAdminForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const full_name = document.getElementById('adminName')?.value.trim();
+    const email = document.getElementById('adminEmail')?.value.trim();
+    const password = document.getElementById('adminPassword')?.value.trim();
+    
+    if (!full_name || !email || !password) {
+      window.api.showMessage('Please fill all fields', 'error');
+      return;
+    }
+    
+    try {
+      await window.api.createAdmin({ full_name, email, password });
+      window.api.showMessage('Admin created successfully!', 'success');
+      window.common?.closeModal();
+      loadDashboard();
+    } catch (err) {
+      console.error('Create admin error:', err);
+      window.api.showMessage(err.message || 'Failed to create admin', 'error');
+    }
+  });
+}
+
 // Init
-document.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  initAdminForm();
+});
 
 // Global access
 window.admin = {

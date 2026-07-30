@@ -97,11 +97,12 @@ function initRegister() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const fullName = document.getElementById('fullName')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
     const password = document.getElementById('password')?.value.trim();
     const confirmPassword = document.getElementById('confirmPassword')?.value.trim();
 
-    if (!email || !password || !confirmPassword) {
+    if (!fullName || !email || !password || !confirmPassword) {
       window.api.showMessage('Please fill all fields', 'error');
       return;
     }
@@ -113,6 +114,7 @@ function initRegister() {
 
     try {
       await window.api.registerUser({
+        full_name: fullName,
         email,
         password
       });

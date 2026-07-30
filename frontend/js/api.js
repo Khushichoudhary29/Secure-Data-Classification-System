@@ -1,4 +1,6 @@
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+  ? 'http://127.0.0.1:8000' 
+  : `http://${window.location.hostname}:8000`;
 
 // Role map - FIXED: 1=Admin, 2=Manager, 3=Employee, 4=User
 const roleMap = {
@@ -10,10 +12,11 @@ const roleMap = {
 
 async function apiRequest(endpoint, options = {}) {
   const token = localStorage.getItem('token');
+  const isFormData = options.body instanceof FormData;
   
   const config = {
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
@@ -143,15 +146,45 @@ async function uploadFile(formData) {
   });
 }
 
-async function downloadFile(fileId) {
-  const blob = await fetch(`${API_BASE}/files/download/${fileId}`, {
-    headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
-  }).then(r => r.blob());
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `secure-file-${fileId}.enc`;
-  a.click();
+async function getFiles() {
+  return apiRequest('/files');
+}
+
+async function downloadFile(fileId, originalName = '') {
+  try {
+    const response = await fetch(`${API_BASE}/files/download/${fileId}`, {
+      headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const disposition = response.headers.get('content-disposition');
+    let filename = originalName || `file-${fileId}`;
+    if (disposition && disposition.indexOf('attachment') !== -1) {
+      const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+      const matches = filenameRegex.exec(disposition);
+      if (matches != null && matches[1]) { 
+        filename = matches[1].replace(/['"]/g, '');
+      }
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Download error:', err);
+    showMessage('Download failed: ' + err.message, 'error');
+  }
+}
+
+async function updateMyProfile(profileData) {
+  return apiRequest('/users/me', {
+    method: 'PUT',
+    body: JSON.stringify(profileData)
+  });
 }
 
 // Global window export
@@ -159,7 +192,7 @@ window.api = {
   apiRequest, showMessage, logout, loginUser, registerUser, getCurrentUser,
   getAdminUsers, getAdminStats, getAdminRoles, updateUserRole, createAdmin, deleteUser, updateUser,
   getManagerEmployees, getEmployeeDetails, updateEmployee,
-  getEmployeeDashboard, getEmployeeProfile,
-  uploadFile, downloadFile,
+  getEmployeeDashboard, getEmployeeProfile, updateMyProfile,
+  uploadFile, downloadFile, getFiles,
   roleMap
 };
