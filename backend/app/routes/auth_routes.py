@@ -36,6 +36,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     # Get role name from the user object
     role_name = db_user.role.name if db_user.role else "User"
 
+    # Log successful login to the cryptographic audit chain
+    from app.services.audit_service import log_event
+    log_event(db, db_user.email, "User logged in successfully")
+
     token = create_access_token({
         "user_id": db_user.id,
         "role_id": db_user.role_id,
