@@ -18,9 +18,12 @@ router = APIRouter()
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...), user=Depends(get_current_user)):
+async def upload_file(file: UploadFile = File(...), user=Depends(get_current_user), db: Session = Depends(get_db)):
     try:
         metadata = await save_encrypted_file(file)
+        # Log upload to the audit chain
+        from app.services.audit_service import log_event
+        log_event(db, user.email, f"Uploaded file: {file.filename} (Classification: {metadata['classification']})")
         return metadata
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -45,7 +48,7 @@ def list_files(db: Session = Depends(get_db), user=Depends(get_current_user)):
 
 
 @router.get("/download/{file_id}")
-def download_file(file_id: int, user=Depends(get_current_user)):
+def download_file(file_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
 
     file = get_file_by_id(file_id)
 
@@ -61,6 +64,10 @@ def download_file(file_id: int, user=Depends(get_current_user)):
         file.encrypted_dek,
         file.dek_iv
     )
+
+    # Log successful download to the audit chain
+    from app.services.audit_service import log_event
+    log_event(db, user.email, f"Downloaded file: {file.original_filename}")
 
     return StreamingResponse(
         io.BytesIO(file_data),
