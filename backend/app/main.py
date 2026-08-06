@@ -11,7 +11,7 @@ from app.routes.employee_routes import router as employee_router
 from app.routes.file_routes import router as file_router
 
 # MODELS (IMPORTANT for table creation)
-from app.models import user, role, file_model
+from app.models import user, role, file_model, audit_model
 
 # CREATE TABLES
 Base.metadata.create_all(bind=engine)
