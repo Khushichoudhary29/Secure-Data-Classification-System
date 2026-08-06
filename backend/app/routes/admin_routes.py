@@ -78,6 +78,10 @@ def update_user_role(
     db.commit()
     db.refresh(user)
 
+    # Log role update event
+    from app.services.audit_service import log_event
+    log_event(db, admin_user.email, f"Updated role for user {user.email} to {role.name}")
+
     return {
         "message": f"Role updated successfully for user {user.full_name}",
         "user_id": user.id,
@@ -162,6 +166,10 @@ def delete_user(
     db.delete(user)
     db.commit()
 
+    # Log user deletion event
+    from app.services.audit_service import log_event
+    log_event(db, admin_user.email, f"Deleted user account: {user.email}")
+
     return {"message": f"User {user.full_name} deleted successfully"}
 
 
@@ -202,6 +210,33 @@ def update_user(
         "email": user.email,
         "role_id": user.role_id
     }
+
+
+@router.get("/audit-logs")
+def get_audit_logs(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    from app.models.audit_model import AuditLog
+    logs = db.query(AuditLog).order_by(AuditLog.id.desc()).all()
+    return [{
+        "id": log.id,
+        "user_email": log.user_email,
+        "action": log.action,
+        "timestamp": log.timestamp.isoformat(),
+        "previous_hash": log.previous_hash,
+        "current_hash": log.current_hash
+    } for log in logs]
+
+
+@router.post("/verify-logs")
+def verify_logs(
+    db: Session = Depends(get_db),
+    admin_user=Depends(role_required(["Admin"]))
+):
+    from app.services.audit_service import verify_audit_chain
+    result = verify_audit_chain(db)
+    return result
 
 
 
