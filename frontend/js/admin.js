@@ -42,6 +42,9 @@ async function loadDashboard() {
     // Load users table
     loadUsers();
 
+    // Load activity audit logs
+    loadAuditLogs();
+
   } catch (err) {
     console.error('Dashboard load error:', err);
     window.api.showMessage('Dashboard load failed', 'error');
@@ -247,6 +250,55 @@ function initAdminForm() {
   });
 }
 
+async function loadAuditLogs() {
+  const container = document.getElementById('activityLogs');
+  if (!container) return;
+
+  try {
+    const logs = await window.api.getAuditLogs();
+    if (!logs || logs.length === 0) {
+      container.innerHTML = '<p style="opacity: 0.7; text-align: center; padding: 20px 0;"><i class="fa-solid fa-receipt"></i> No activity logs found.</p>';
+      return;
+    }
+
+    container.innerHTML = logs.map(log => {
+      const dateStr = new Date(log.timestamp).toLocaleString();
+      return `
+        <div class="log-entry" style="margin-bottom: 12px; font-size: 0.85rem; border-left: 4px solid #38bdf8;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div>
+              <strong style="color: #38bdf8;">${log.user_email}</strong>: ${log.action}
+              <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px; word-break: break-all;">
+                <span>Hash: ${log.current_hash.substring(0, 24)}...</span>
+              </div>
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; white-space: nowrap; margin-left: 15px;">
+              ${dateStr}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Failed to load audit logs:', err);
+    container.innerHTML = '<p style="color: var(--danger); text-align: center; padding: 20px 0;">Error loading audit logs.</p>';
+  }
+}
+
+async function verifyAuditLogs() {
+  try {
+    const result = await window.api.verifyAuditLogs();
+    if (result.status === 'intact') {
+      window.api.showMessage(result.message || 'Audit logs verified intact.', 'success');
+    } else {
+      window.api.showMessage(result.message || 'Alert: Audit log tampering detected!', 'error');
+    }
+  } catch (err) {
+    console.error('Audit log verification failed:', err);
+    window.api.showMessage(err.message || 'Verification request failed.', 'error');
+  }
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
   loadDashboard();
@@ -260,5 +312,7 @@ window.admin = {
   editRole,
   updateRoleConfirm,
   deleteUserConfirm,
-  openCreateAdminModal
+  openCreateAdminModal,
+  loadAuditLogs,
+  verifyAuditLogs
 };
