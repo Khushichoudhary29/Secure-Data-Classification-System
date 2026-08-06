@@ -187,6 +187,17 @@ async function updateMyProfile(profileData) {
   });
 }
 
+// Audit Logs API Wrapper
+async function getAuditLogs() {
+  return apiRequest('/admin/audit-logs');
+}
+
+async function verifyAuditLogs() {
+  return apiRequest('/admin/verify-logs', {
+    method: 'POST'
+  });
+}
+
 // Global window export
 window.api = {
   apiRequest, showMessage, logout, loginUser, registerUser, getCurrentUser,
@@ -194,5 +205,6 @@ window.api = {
   getManagerEmployees, getEmployeeDetails, updateEmployee,
   getEmployeeDashboard, getEmployeeProfile, updateMyProfile,
   uploadFile, downloadFile, getFiles,
+  getAuditLogs, verifyAuditLogs,
   roleMap
 };
